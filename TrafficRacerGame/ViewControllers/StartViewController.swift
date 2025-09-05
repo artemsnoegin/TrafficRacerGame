@@ -9,6 +9,8 @@ import UIKit
 
 class StartViewController: UIViewController {
     
+    let startButton = CustomButton(title: "Start", color: .systemYellow)
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -18,7 +20,6 @@ class StartViewController: UIViewController {
     private func setupUI() {
         view.backgroundColor = .white
         
-        let startButton = CustomButton(title: "Start", color: .systemYellow)
         startButton.addTarget(self, action: #selector(startGame(_:)), for: .touchUpInside)
         
         view.addSubview(startButton)
@@ -33,7 +34,16 @@ class StartViewController: UIViewController {
     }
     
     @objc private func startGame(_ sender: UIButton) {
-        navigationController?.pushViewController(MainViewController(), animated: true)
+        let buttonAnimation = {
+            self.startButton.transform = CGAffineTransform(scaleX: 0.1, y: 0.1)
+            self.startButton.alpha = 0
+        }
+        
+        UIView.animate(withDuration: 0.5, delay: 0, animations: buttonAnimation) { _ in
+            self.startButton.transform = .identity
+            self.startButton.alpha = 1
+            self.navigationController?.pushViewController(MainViewController(), animated: false)
+        }
     }
     
 }

@@ -11,24 +11,21 @@ class CustomButton: UIButton {
     
     let height: CGFloat = 60
     
-    var title: String
-    var color: UIColor
-    
     init(title: String, color: UIColor) {
-        self.title = title
-        self.color = color
-        
         super.init(frame: .zero)
-        setup()
+        
+        self.setTitle(title, for: .normal)
+        self.backgroundColor = color
+        
+
+        configureUI()
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
-    private func setup() {
-        setTitle(title, for: .normal)
-        backgroundColor = color
+    private func configureUI() {
         titleLabel?.font = .systemFont(ofSize: 30, weight: .bold, width: .condensed)
         
         layer.cornerRadius = height / 2
