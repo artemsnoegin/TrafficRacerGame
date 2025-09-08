@@ -16,7 +16,9 @@ class MainViewController: UIViewController {
     }
     
     private func setupUI() {
-        view.backgroundColor = .white
+        let bgView = BackgroundRoadView()
+        view.addSubview(bgView)
+        
     }
     
 }
