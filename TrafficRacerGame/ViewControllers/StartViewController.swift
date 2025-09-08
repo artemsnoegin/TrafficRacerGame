@@ -18,7 +18,8 @@ class StartViewController: UIViewController {
     }
     
     private func setupUI() {
-        view.backgroundColor = .white
+        let bgView = BackgroundRoadView()
+        view.addSubview(bgView)
         
         startButton.addTarget(self, action: #selector(startGame(_:)), for: .touchUpInside)
         
