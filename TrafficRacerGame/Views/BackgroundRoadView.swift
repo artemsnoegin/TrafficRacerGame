@@ -9,6 +9,8 @@ import UIKit
 
 class BackgroundRoadView: UIView {
     
+    let roadSubview = UIView()
+    
     override func didMoveToSuperview() {
         drawBackground()
     }
@@ -19,8 +21,6 @@ class BackgroundRoadView: UIView {
         frame = superview.frame
         
         backgroundColor = .systemGreen
-        
-        let roadSubview = UIView()
         roadSubview.backgroundColor = .systemGray4
         
         let roadWidth = frame.width / 1.3
