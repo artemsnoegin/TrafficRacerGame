@@ -1,5 +1,5 @@
 //
-//  ControlsView.swift
+//  ControlView.swift
 //  TrafficRacerGame
 //
 //  Created by Артём Сноегин on 09.09.2025.
@@ -7,9 +7,9 @@
 
 import UIKit
 
-class ControlsView: UIView {
+class ControlView: UIView {
     
-    weak var delegate: ControlsViewDelegate?
+    weak var delegate: ControlViewDelegate?
     
     override func didMoveToSuperview() {
         guard let superview = superview else { return }

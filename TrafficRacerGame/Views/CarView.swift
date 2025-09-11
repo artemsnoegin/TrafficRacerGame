@@ -7,14 +7,12 @@
 
 import UIKit
 
-class CarView: UIView, ControlsViewDelegate {
-    
-    var direction: Direction?
-    var displayLink: CADisplayLink?
+class CarView: UIView {
 
     init(color: UIColor) {
         super.init(frame: .zero)
         
+        frame.size = CGSize(width: 60, height: 60)
         self.backgroundColor = color
     }
     
@@ -22,12 +20,22 @@ class CarView: UIView, ControlsViewDelegate {
         fatalError("init(coder:) has not been implemented")
     }
     
+}
+
+class CarPlayer: CarView, ControlViewDelegate {
+
+    enum Direction {
+        case left
+        case right
+    }
+    
+    var direction: Direction?
+    var displayLink: CADisplayLink?
+    
     override func didMoveToSuperview() {
         super.didMoveToSuperview()
-        
         guard let superview = superview else { return }
         
-        frame.size = CGSize(width: 60, height: 60)
         frame.origin = CGPoint(x: superview.frame.width / 2 - 30, y: superview.frame.height - superview.safeAreaInsets.bottom - 60)
     }
     
@@ -76,11 +84,4 @@ class CarView: UIView, ControlsViewDelegate {
         stopMoving()
     }
     
-}
-
-extension CarView {
-    enum Direction {
-        case left
-        case right
-    }
 }

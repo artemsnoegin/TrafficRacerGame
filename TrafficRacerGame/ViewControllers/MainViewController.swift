@@ -10,7 +10,7 @@ import UIKit
 class MainViewController: UIViewController {
     
     
-    let car = CarView(color: .systemRed)
+    let car = CarPlayer(color: .systemRed)
     let backgroundView = BackgroundRoadView()
     
     override func viewDidLoad() {
@@ -42,9 +42,45 @@ class MainViewController: UIViewController {
     
     private func gameDidLaunch() {
         view.addSubview(car)
-        let controls = ControlsView()
+        let controls = ControlView()
         controls.delegate = car
         view.addSubview(controls)
+        createEnemyCar()
+    }
+    
+    private func createEnemyCar() {
+        let enemyCar = CarView(color: .systemBlue)
+        enemyCar.frame.origin.y = -enemyCar.frame.height
+        
+        // случайная позиция по оси X
+            let minX: CGFloat = 50
+            let maxX: CGFloat = self.view.frame.width - 50
+            enemyCar.center.x = CGFloat.random(in: minX...maxX)
+        
+        view.addSubview(enemyCar)
+
+        // скорость падения
+        let speed: CGFloat = 3.0
+
+        // таймер для движения
+        Timer.scheduledTimer(withTimeInterval: 0.01, repeats: true) { [weak self] timer in
+            guard let self = self else { return }
+            
+            // двигаем машинку вниз
+            enemyCar.frame.origin.y += speed
+            
+            // проверяем столкновение
+            if enemyCar.frame.intersects(self.car.frame) {
+                timer.invalidate()
+                self.navigationController?.pushViewController(GameOverViewController(), animated: true)
+            }
+            
+            // если ушла за экран — удалить
+            if enemyCar.frame.origin.y > self.view.frame.height {
+                timer.invalidate()
+                enemyCar.removeFromSuperview()
+            }
+        }
     }
     
 }
