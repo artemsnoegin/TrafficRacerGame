@@ -16,7 +16,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         window = UIWindow(frame: UIScreen.main.bounds)
         
-        let rootViewController = StartViewController()
+        let rootViewController = GameViewController()
         let navigationController = UINavigationController(rootViewController: rootViewController)
         
         window?.rootViewController = navigationController
