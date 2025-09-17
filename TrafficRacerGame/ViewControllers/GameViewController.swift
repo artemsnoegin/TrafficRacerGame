@@ -9,8 +9,10 @@ import UIKit
 
 class GameViewController: UIViewController {
     
-    let playerView = UIView()
-    let enemyView = UIView()
+    let carNames = (0...18).map { "car\($0)" }
+    
+    let playerImageView = UIImageView()
+    let enemyImageView = UIImageView()
     
     var isMovingLeft = false
     var isMovingRight = false
@@ -21,7 +23,9 @@ class GameViewController: UIViewController {
         super.viewDidLoad()
         
         // MARK: Background
-        view.backgroundColor = .gray
+        let bgView = UIImageView(image: UIImage(named: "road"))
+        bgView.frame.size = view.frame.size
+        view.addSubview(bgView)
 
         // MARK: Welcome Alert
         let welcomeAlert = UIAlertController(title: "Welcome", message: nil, preferredStyle: .alert)
@@ -34,16 +38,20 @@ class GameViewController: UIViewController {
         present(welcomeAlert, animated: true)
         
         // MARK: Add Player On View
-        playerView.backgroundColor = .red
+        guard let name = carNames.randomElement() else { return }
+        guard let image = UIImage(named: name) else { return }
+        playerImageView.image = image
+
+        let playerSize = image.size
         
-        let playerViewSize = CGSize(width: 60, height: 60)
-        playerView.frame.size = playerViewSize
+        playerImageView.frame.size = playerSize
         
-        let playerViewStartPoint = CGPoint(x: view.center.x - playerViewSize.width / 2,
-                                           y: view.frame.height - (playerViewSize.height * 2))
-        playerView.frame.origin = playerViewStartPoint
-        
-        view.addSubview(playerView)
+        let playerViewStartPoint = CGPoint(x: view.center.x - playerSize.width / 2,
+                                           y: view.frame.height - playerSize.height * 1.5)
+        playerImageView.frame.origin = playerViewStartPoint
+
+        playerImageView.transform = CGAffineTransform(rotationAngle: .pi)
+        view.addSubview(playerImageView)
         
         // MARK: Add Controls on View
         let leftTapGesture = UILongPressGestureRecognizer(target: self, action: #selector(pressLeft(_:)))
@@ -90,18 +98,20 @@ class GameViewController: UIViewController {
         displayLink?.add(to: .main, forMode: .default)
         
         // MARK: Add Enemy On View
-        enemyView.backgroundColor = .blue
+        guard let enemyCarName = carNames.randomElement() else { return }
+        guard let enemyCarImage = UIImage(named: enemyCarName) else { return }
+        enemyImageView.image = enemyCarImage
         
-        let enemyViewSize = CGSize(width: 60, height: 60)
-        enemyView.frame.size = enemyViewSize
+        let enemySize = enemyCarImage.size
+        enemyImageView.frame.size = enemySize
         
-        enemyView.frame.origin.y = -enemyViewSize.height
+        enemyImageView.frame.origin.y = -enemySize.height
         
         let minX: CGFloat = 0
-        let maxX: CGFloat = view.frame.width - enemyViewSize.width
-        enemyView.center.x = CGFloat.random(in: minX...maxX)
+        let maxX: CGFloat = view.frame.width - enemySize.width
+        enemyImageView.center.x = CGFloat.random(in: minX...maxX)
         
-        view.addSubview(enemyView)
+        view.addSubview(enemyImageView)
     }
     
     @objc func gameLoop() {
@@ -109,25 +119,29 @@ class GameViewController: UIViewController {
         let speed: CGFloat = 6
         
         if isMovingLeft {
-            playerView.center.x = max(playerView.frame.width / 2, playerView.center.x - speed)
+            playerImageView.center.x = max(playerImageView.frame.width / 2, playerImageView.center.x - speed)
         }
         if isMovingRight {
-            playerView.center.x = min(view.frame.width - playerView.frame.width / 2, playerView.center.x + speed)
+            playerImageView.center.x = min(view.frame.width - playerImageView.frame.width / 2, playerImageView.center.x + speed)
         }
 
-        enemyView.frame.origin.y += speed
+        enemyImageView.frame.origin.y += speed
         
-        if enemyView.frame.intersects(playerView.frame) {
+        if enemyImageView.frame.intersects(playerImageView.frame) {
             gameOver()
             return
         }
         
-        if enemyView.frame.origin.y > view.frame.height {
-            enemyView.frame.origin.y = -enemyView.frame.height
+        if enemyImageView.frame.origin.y > view.frame.height {
+            guard let enemyCarName = carNames.randomElement() else { return }
+            guard let enemyCarImage = UIImage(named: enemyCarName) else { return }
+            enemyImageView.image = enemyCarImage
             
-            let minX: CGFloat = 0 + (enemyView.frame.width / 2)
-            let maxX: CGFloat = view.frame.width - (enemyView.frame.width / 2)
-            enemyView.center.x = CGFloat.random(in: minX...maxX)
+            enemyImageView.frame.origin.y = -enemyImageView.frame.height
+            
+            let minX: CGFloat = 0 + (enemyImageView.frame.width / 2)
+            let maxX: CGFloat = view.frame.width - (enemyImageView.frame.width / 2)
+            enemyImageView.center.x = CGFloat.random(in: minX...maxX)
         }
     }
     
@@ -144,16 +158,16 @@ class GameViewController: UIViewController {
     }
     
     private func gameRestart() {
-        playerView.center = CGPoint(
+        playerImageView.center = CGPoint(
             x: view.center.x,
-            y: view.frame.height - view.safeAreaInsets.bottom - playerView.frame.height / 2
+            y: view.frame.height - view.safeAreaInsets.bottom - playerImageView.frame.height / 2
         )
         
-        enemyView.frame.origin.y = -enemyView.frame.height
+        enemyImageView.frame.origin.y = -enemyImageView.frame.height
         
-        let minX: CGFloat = 0 + (enemyView.frame.width / 2)
-        let maxX: CGFloat = view.frame.width - (enemyView.frame.width / 2)
-        enemyView.center.x = CGFloat.random(in: minX...maxX)
+        let minX: CGFloat = 0 + (enemyImageView.frame.width / 2)
+        let maxX: CGFloat = view.frame.width - (enemyImageView.frame.width / 2)
+        enemyImageView.center.x = CGFloat.random(in: minX...maxX)
         
         isMovingLeft = false
         isMovingRight = false
