@@ -13,15 +13,13 @@ class GameViewController: UIViewController {
     
     private let carNames = (0...18).map { "car\($0)" }
     
-    private let playerImageView = UIImageView()
     private let enemyImageView = UIImageView()
-    
-    private var isMovingLeft = false
-    private var isMovingRight = false
     
     private let backgroundView = BackgroundView()
     
     private let controlView = ControlView()
+    
+    private let playerImageView = PlayerImageView()
     
     private let speed: CGFloat = 6
     
@@ -31,7 +29,7 @@ class GameViewController: UIViewController {
         view.addSubview(backgroundView)
         
         view.addSubview(controlView)
-        controlView.delegate = self
+        controlView.delegate = playerImageView
 
         presentWelcomeAlert()
     }
@@ -45,33 +43,6 @@ class GameViewController: UIViewController {
         welcomeAlert.addAction(startAction)
         
         present(welcomeAlert, animated: true)
-    }
-    
-    // MARK: Player
-    private func addPlayerOnView() {
-        guard let name = carNames.randomElement() else { return }
-        guard let image = UIImage(named: name) else { return }
-        playerImageView.image = image
-
-        let playerSize = image.size
-        
-        playerImageView.frame.size = playerSize
-        
-        let playerViewStartPoint = CGPoint(x: view.center.x - playerSize.width / 2,
-                                           y: view.frame.height - playerSize.height * 1.5)
-        playerImageView.frame.origin = playerViewStartPoint
-
-        playerImageView.transform = CGAffineTransform(rotationAngle: .pi)
-        view.addSubview(playerImageView)
-    }
-    
-    private func movePlayer() {
-        if isMovingLeft {
-            playerImageView.center.x = max(playerImageView.frame.width / 2, playerImageView.center.x - speed)
-        }
-        if isMovingRight {
-            playerImageView.center.x = min(view.frame.width - playerImageView.frame.width / 2, playerImageView.center.x + speed)
-        }
     }
     
     // MARK: Enemy
@@ -106,7 +77,7 @@ class GameViewController: UIViewController {
         displayLink = CADisplayLink(target: self, selector: #selector(gameLoop))
         displayLink?.add(to: .main, forMode: .default)
         
-        addPlayerOnView()
+        playerImageView.place(on: view)
         
         addEnemyOnView()
     }
@@ -114,7 +85,7 @@ class GameViewController: UIViewController {
     @objc func gameLoop() {
         backgroundView.moveBackground(speed: speed)
         
-        movePlayer()
+        playerImageView.move(speed: speed)
         
         moveEnemy()
         
@@ -137,31 +108,11 @@ class GameViewController: UIViewController {
     }
     
     private func gameRestart() {
-        playerImageView.removeFromSuperview()
+        
+        playerImageView.restart()
+        
         enemyImageView.removeFromSuperview()
         
-        isMovingLeft = false
-        isMovingRight = false
-        
         startGameLoop()
-    }
-}
-
-extension GameViewController: ControlViewDelegate {
-
-    func didPressLeft() {
-        isMovingLeft = true
-    }
-    
-    func didReleaseLeft() {
-        isMovingLeft = false
-    }
-    
-    func didPressRight() {
-        isMovingRight = true
-    }
-    
-    func didReleaseRight() {
-        isMovingRight = false
     }
 }
