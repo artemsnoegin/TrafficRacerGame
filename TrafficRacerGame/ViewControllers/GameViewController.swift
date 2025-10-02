@@ -21,6 +21,8 @@ class GameViewController: UIViewController {
     
     private let backgroundView = BackgroundView()
     
+    private let controlView = ControlView()
+    
     private let speed: CGFloat = 6
     
     override func viewDidLoad() {
@@ -28,7 +30,8 @@ class GameViewController: UIViewController {
         
         view.addSubview(backgroundView)
         
-        addControlsOnView()
+        view.addSubview(controlView)
+        controlView.delegate = self
 
         presentWelcomeAlert()
     }
@@ -68,45 +71,6 @@ class GameViewController: UIViewController {
         }
         if isMovingRight {
             playerImageView.center.x = min(view.frame.width - playerImageView.frame.width / 2, playerImageView.center.x + speed)
-        }
-    }
-    
-    // MARK: Player Control Logic
-    private func addControlsOnView() {
-        let leftTapGesture = UILongPressGestureRecognizer(target: self, action: #selector(pressLeft(_:)))
-        leftTapGesture.minimumPressDuration = 0
-        
-        let rightTapGesture = UILongPressGestureRecognizer(target: self, action: #selector(pressRight(_:)))
-        rightTapGesture.minimumPressDuration = 0
-        
-        let leftButtonView = UIView()
-        leftButtonView.frame.size = CGSize(width: view.frame.width / 2, height: view.frame.height / 2)
-        leftButtonView.frame.origin = CGPoint(x: 0, y: view.frame.height / 2)
-        leftButtonView.addGestureRecognizer(leftTapGesture)
-        view.addSubview(leftButtonView)
-        
-        let rightButtonView = UIView()
-        rightButtonView.frame.size = CGSize(width: view.frame.width / 2, height: view.frame.height / 2)
-        rightButtonView.frame.origin = CGPoint(x: view.frame.width / 2, y: view.frame.height / 2)
-        rightButtonView.addGestureRecognizer(rightTapGesture)
-        view.addSubview(rightButtonView)
-    }
-    
-    @objc func pressLeft(_ gesture: UILongPressGestureRecognizer) {
-        if gesture.state == .began || gesture.state == .changed {
-            isMovingLeft = true
-        }
-        if gesture.state == .ended || gesture.state == .cancelled {
-            isMovingLeft = false
-        }
-    }
-
-    @objc func pressRight(_ gesture: UILongPressGestureRecognizer) {
-        if gesture.state == .began || gesture.state == .changed {
-            isMovingRight = true
-        }
-        if gesture.state == .ended || gesture.state == .cancelled {
-            isMovingRight = false
         }
     }
     
@@ -180,5 +144,24 @@ class GameViewController: UIViewController {
         isMovingRight = false
         
         startGameLoop()
+    }
+}
+
+extension GameViewController: ControlViewDelegate {
+
+    func didPressLeft() {
+        isMovingLeft = true
+    }
+    
+    func didReleaseLeft() {
+        isMovingLeft = false
+    }
+    
+    func didPressRight() {
+        isMovingRight = true
+    }
+    
+    func didReleaseRight() {
+        isMovingRight = false
     }
 }
