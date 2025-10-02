@@ -11,14 +11,11 @@ class GameViewController: UIViewController {
  
     private var displayLink: CADisplayLink?
     
-    private let carNames = (0...18).map { "car\($0)" }
-    
-    private let enemyImageView = UIImageView()
-    
     private let backgroundView = BackgroundView()
     
     private let controlView = ControlView()
     
+    private let enemyImageView = EnemyImageView()
     private let playerImageView = PlayerImageView()
     
     private let speed: CGFloat = 6
@@ -45,33 +42,6 @@ class GameViewController: UIViewController {
         present(welcomeAlert, animated: true)
     }
     
-    // MARK: Enemy
-    private func addEnemyOnView() {
-        guard let enemyCarName = carNames.randomElement() else { return }
-        guard let enemyCarImage = UIImage(named: enemyCarName) else { return }
-        enemyImageView.image = enemyCarImage
-        
-        let enemySize = enemyCarImage.size
-        enemyImageView.frame.size = enemySize
-        
-        enemyImageView.frame.origin.y = -enemySize.height
-        
-        let minX: CGFloat = 0
-        let maxX: CGFloat = view.frame.width - enemySize.width
-        enemyImageView.center.x = CGFloat.random(in: minX...maxX)
-        
-        view.addSubview(enemyImageView)
-    }
-    
-    private func moveEnemy() {
-        enemyImageView.frame.origin.y += speed
-        
-        if enemyImageView.frame.origin.y > view.frame.height {
-            enemyImageView.removeFromSuperview()
-            addEnemyOnView()
-        }
-    }
-    
     // MARK: Game Logic
     private func startGameLoop() {
         displayLink = CADisplayLink(target: self, selector: #selector(gameLoop))
@@ -79,7 +49,7 @@ class GameViewController: UIViewController {
         
         playerImageView.place(on: view)
         
-        addEnemyOnView()
+        enemyImageView.place(on: view)
     }
     
     @objc func gameLoop() {
@@ -87,7 +57,7 @@ class GameViewController: UIViewController {
         
         playerImageView.move(speed: speed)
         
-        moveEnemy()
+        enemyImageView.move(speed: speed)
         
         if enemyImageView.frame.intersects(playerImageView.frame) {
             gameOver()
@@ -111,7 +81,7 @@ class GameViewController: UIViewController {
         
         playerImageView.restart()
         
-        enemyImageView.removeFromSuperview()
+        enemyImageView.restart()
         
         startGameLoop()
     }
