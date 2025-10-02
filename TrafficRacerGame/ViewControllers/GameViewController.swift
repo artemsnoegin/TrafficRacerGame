@@ -19,15 +19,14 @@ class GameViewController: UIViewController {
     private var isMovingLeft = false
     private var isMovingRight = false
     
-    private let bg1 = UIImageView()
-    private let bg2 = UIImageView()
+    private let backgroundView = BackgroundView()
     
     private let speed: CGFloat = 6
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        setupBackground()
+        view.addSubview(backgroundView)
         
         addControlsOnView()
 
@@ -43,34 +42,6 @@ class GameViewController: UIViewController {
         welcomeAlert.addAction(startAction)
         
         present(welcomeAlert, animated: true)
-    }
-    
-    // MARK: Background
-    private func setupBackground() {
-        guard let roadImage = UIImage(named: "road") else { return }
-
-        bg1.image = roadImage
-            bg1.frame = view.bounds
-            view.addSubview(bg1)
-            
-        bg2.image = roadImage
-            bg2.frame = view.bounds
-            bg2.frame.origin.y = -view.frame.height
-            view.addSubview(bg2)
-    }
-    
-    private func moveBackground() {
-        bg1.frame.origin.y += speed / 2
-        bg2.frame.origin.y += speed / 2
-        
-        
-        if bg1.frame.origin.y >= view.frame.height {
-            bg1.frame.origin.y = bg2.frame.origin.y - bg1.frame.height
-        }
-        
-        if bg2.frame.origin.y >= view.frame.height {
-            bg2.frame.origin.y = bg1.frame.origin.y - bg2.frame.height
-        }
     }
     
     // MARK: Player
@@ -177,7 +148,7 @@ class GameViewController: UIViewController {
     }
     
     @objc func gameLoop() {
-        moveBackground()
+        backgroundView.moveBackground(speed: speed)
         
         movePlayer()
         
