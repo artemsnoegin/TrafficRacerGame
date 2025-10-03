@@ -5,7 +5,7 @@
 //  Created by Артём Сноегин on 02.10.2025.
 //
 
-protocol ControlViewDelegate: AnyObject {
+protocol ControlViewDelegate: Controllable {
     
     func didPressLeft()
     

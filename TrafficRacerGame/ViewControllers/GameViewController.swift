@@ -15,8 +15,8 @@ class GameViewController: UIViewController {
     
     private let controlView = ControlView()
     
-    private let enemyImageView = EnemyImageView()
-    private let playerImageView = PlayerImageView()
+    private let enemyImageView = EnemyCarView()
+    private let playerImageView = PlayerCarView()
     
     private let speed: CGFloat = 6
     
