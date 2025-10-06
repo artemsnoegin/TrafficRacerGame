@@ -77,7 +77,7 @@ class GameViewController: UIViewController {
             
             enemy.move(speed: speed)
             
-            if enemy.frame.intersects(playerImageView.frame) {
+            if enemy.frame.insetBy(dx: 4, dy: 4).intersects(playerImageView.frame.insetBy(dx: 4, dy: 4)) {
                 gameOver()
                 break
             }
