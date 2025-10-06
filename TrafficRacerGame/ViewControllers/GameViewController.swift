@@ -18,7 +18,11 @@ class GameViewController: UIViewController {
     private let enemyImageView = EnemyCarView()
     private let playerImageView = PlayerCarView()
     
+    private var enemies: [EnemyCarView] = []
+    
     private let speed: CGFloat = 6
+    
+    private var enemySpawnTimer = Timer()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -44,30 +48,49 @@ class GameViewController: UIViewController {
     
     // MARK: Game Logic
     private func startGameLoop() {
+        
         displayLink = CADisplayLink(target: self, selector: #selector(gameLoop))
         displayLink?.add(to: .main, forMode: .default)
         
         playerImageView.place(on: view)
         
-        enemyImageView.place(on: view)
+        enemySpawnTimer = Timer.scheduledTimer(timeInterval: 2, target: self, selector: #selector(spawnEnemies), userInfo: nil, repeats: true)
+        enemySpawnTimer.fire()
+    }
+    
+    @objc private func spawnEnemies() {
+        
+        if enemies.count < 3 {
+            
+            let enemy = EnemyCarView()
+            enemy.place(on: view)
+            
+            enemies.append(enemy)
+        }
     }
     
     @objc func gameLoop() {
+        
         backgroundView.move(speed: speed)
         
         playerImageView.move(speed: speed)
         
-        enemyImageView.move(speed: speed)
-        
-        if enemyImageView.frame.intersects(playerImageView.frame) {
-            gameOver()
-            return
+        for enemy in enemies {
+            
+            enemy.move(speed: speed)
+            
+            if enemy.frame.intersects(playerImageView.frame) {
+                gameOver()
+                break
+            }
         }
     }
     
     private func gameOver() {
         displayLink?.invalidate()
         displayLink = nil
+        
+        enemySpawnTimer.invalidate()
         
         let alert = UIAlertController(title: "Game Over", message: nil, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "Restart", style: .default) { _ in
@@ -79,9 +102,10 @@ class GameViewController: UIViewController {
     
     private func gameRestart() {
         
-        playerImageView.restart()
+        playerImageView.removeFromSuperview()
         
-        enemyImageView.restart()
+        enemies.forEach { $0.removeFromSuperview() }
+        enemies.removeAll()
         
         startGameLoop()
     }

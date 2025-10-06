@@ -11,5 +11,5 @@ protocol Car {
     
     func place(on view: UIView)
     
-    func restart()
+    func removeFromSuperview()
 }

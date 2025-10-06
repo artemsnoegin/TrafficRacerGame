@@ -33,8 +33,8 @@ class PlayerCarView: CarImageView, Movable, Controllable {
         }
     }
     
-    override func restart() {
-        super.restart()
+    override func removeFromSuperview() {
+        super.removeFromSuperview()
         
         isMovingLeft = false
         isMovingRight = false
