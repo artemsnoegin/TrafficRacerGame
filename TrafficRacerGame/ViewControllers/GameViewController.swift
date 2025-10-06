@@ -15,14 +15,12 @@ class GameViewController: UIViewController {
     
     private let controlView = ControlView()
     
-    private let enemyImageView = EnemyCarView()
     private let playerImageView = PlayerCarView()
-    
     private var enemies: [EnemyCarView] = []
     
-    private let speed: CGFloat = 6
-    
     private var enemySpawnTimer = Timer()
+    
+    private let speed: CGFloat = 6
     
     override func viewDidLoad() {
         super.viewDidLoad()
