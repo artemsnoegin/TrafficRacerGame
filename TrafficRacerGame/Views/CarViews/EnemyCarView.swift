@@ -14,8 +14,8 @@ class EnemyCarView: CarImageView, Movable {
         
         frame.origin.y = -frame.height
         
-        let minX: CGFloat = 0
-        let maxX: CGFloat = view.frame.width - frame.width
+        let minX: CGFloat = frame.width / 2
+        let maxX: CGFloat = view.frame.width - (frame.width / 2)
         center.x = CGFloat.random(in: minX...maxX)
     }
     
