@@ -7,7 +7,7 @@
 
 import UIKit
 
-class BackgroundView: UIView {
+class BackgroundView: UIView, Movable {
     
     private let bg1 = UIImageView()
     private let bg2 = UIImageView()
@@ -31,7 +31,7 @@ class BackgroundView: UIView {
         }
     }
     
-    func moveBackground(speed: CGFloat) {
+    func move(speed: CGFloat) {
         
         bg1.frame.origin.y += speed / 2
         bg2.frame.origin.y += speed / 2

@@ -53,7 +53,7 @@ class GameViewController: UIViewController {
     }
     
     @objc func gameLoop() {
-        backgroundView.moveBackground(speed: speed)
+        backgroundView.move(speed: speed)
         
         playerImageView.move(speed: speed)
         
