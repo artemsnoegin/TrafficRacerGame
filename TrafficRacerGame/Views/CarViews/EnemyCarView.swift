@@ -9,6 +9,8 @@ import UIKit
 
 class EnemyCarView: CarImageView, Movable {
     
+    weak var delegate: EnemyCarViewDelegate?
+    
     override func place(on view: UIView) {
         super.place(on: view)
         
@@ -27,6 +29,7 @@ class EnemyCarView: CarImageView, Movable {
         if frame.origin.y > superview.frame.height {
             removeFromSuperview()
             place(on: superview)
+            delegate?.didNotCrash()
         }
     }
 }

@@ -20,7 +20,10 @@ class GameViewController: UIViewController {
     
     private var enemySpawnTimer = Timer()
     
-    private let speed: CGFloat = 6
+    private var speed: CGFloat = 6
+    
+    private let scoreLabel = UILabel()
+    private var score = 0
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -31,6 +34,25 @@ class GameViewController: UIViewController {
         controlView.delegate = playerImageView
 
         presentWelcomeAlert()
+        addScoreLabel()
+    }
+    
+    private func addScoreLabel() {
+        
+        scoreLabel.text = String(score)
+        scoreLabel.font = .preferredFont(forTextStyle: .largeTitle)
+        scoreLabel.textColor = .white
+        
+        navigationController?.navigationBar.addSubview(scoreLabel)
+        scoreLabel.translatesAutoresizingMaskIntoConstraints = false
+
+        if let navigationBar = navigationController?.navigationBar {
+            
+            NSLayoutConstraint.activate([
+                scoreLabel.leadingAnchor.constraint(equalTo: navigationBar.leadingAnchor, constant: 16),
+                scoreLabel.topAnchor.constraint(equalTo: navigationBar.safeAreaLayoutGuide.topAnchor)
+            ])
+        }
     }
     
     private func presentWelcomeAlert() {
@@ -62,6 +84,7 @@ class GameViewController: UIViewController {
             
             let enemy = EnemyCarView()
             enemy.place(on: view)
+            enemy.delegate = self
             
             enemies.append(enemy)
         }
@@ -105,6 +128,23 @@ class GameViewController: UIViewController {
         enemies.forEach { $0.removeFromSuperview() }
         enemies.removeAll()
         
+        speed = 6
+        score = 0
+        scoreLabel.text = String(score)
+        
         startGameLoop()
+    }
+}
+
+extension GameViewController: EnemyCarViewDelegate {
+    
+    func didNotCrash() {
+        score += 1
+        scoreLabel.text = String(score)
+        
+        if score % 10 == 0 {
+            speed += 0.1
+            print(speed)
+        }
     }
 }

@@ -16,7 +16,7 @@ class PlayerCarView: CarImageView, Movable, Controllable {
         super.place(on: view)
         
         let playerViewStartPoint = CGPoint(x: view.center.x - frame.size.width / 2,
-                                           y: view.frame.height - frame.height * 1.5)
+                                           y: view.frame.height - view.safeAreaInsets.bottom - frame.height)
         frame.origin = playerViewStartPoint
 
         transform = CGAffineTransform(rotationAngle: .pi)
