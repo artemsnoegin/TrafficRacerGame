@@ -35,6 +35,14 @@ class GameViewController: UIViewController {
 
         presentWelcomeAlert()
         addScoreLabel()
+        addPauseButton()
+    }
+    
+    private func addPauseButton() {
+        
+        let pauseButton = UIBarButtonItem(image: UIImage(systemName: "pause.fill"), style: .plain, target: self, action: #selector(pause))
+        pauseButton.tintColor = .white
+        navigationItem.rightBarButtonItem = pauseButton
     }
     
     private func addScoreLabel() {
@@ -105,6 +113,21 @@ class GameViewController: UIViewController {
                 break
             }
         }
+    }
+    
+    @objc private func pause() {
+        
+        let currentSpeed = speed
+        speed = 0
+        
+        let alert = UIAlertController(title: "Pause", message: nil, preferredStyle: .alert)
+        
+        let resume = UIAlertAction(title: "Resume", style: .cancel) { _ in
+            self.speed = currentSpeed
+        }
+        alert.addAction(resume)
+        
+        present(alert, animated: true)
     }
     
     private func gameOver() {
