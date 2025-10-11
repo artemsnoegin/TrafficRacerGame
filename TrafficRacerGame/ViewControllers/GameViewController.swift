@@ -33,49 +33,61 @@ class GameViewController: UIViewController {
         view.addSubview(controlView)
         controlView.delegate = playerImageView
 
-        presentWelcomeAlert()
+        presentStartButtonAlert()
         addScoreLabel()
         addPauseButton()
     }
     
     private func addPauseButton() {
         
-        let pauseButton = UIBarButtonItem(image: UIImage(systemName: "pause.fill"), style: .plain, target: self, action: #selector(pause))
+        let pauseButton = UIBarButtonItem(title: "Pause", style: .plain, target: self, action: #selector(pause))
+        if let font = UIFont(name: "CyberpunkCraftpixPixel", size: UIFont.labelFontSize) {
+            pauseButton.setTitleTextAttributes([.font: font], for: .normal)
+            pauseButton.setTitleTextAttributes([.font: font], for: .highlighted)
+        }
         pauseButton.tintColor = .white
+        pauseButton.isHidden = true
+        
         navigationItem.rightBarButtonItem = pauseButton
     }
     
     private func addScoreLabel() {
         
         scoreLabel.text = String(score)
-        scoreLabel.font = .preferredFont(forTextStyle: .largeTitle)
+        scoreLabel.font = .init(name: "CyberpunkCraftpixPixel", size: UIFont.labelFontSize * 2)
         scoreLabel.textColor = .white
-        
+        scoreLabel.isHidden = true
+
         navigationController?.navigationBar.addSubview(scoreLabel)
         scoreLabel.translatesAutoresizingMaskIntoConstraints = false
 
         if let navigationBar = navigationController?.navigationBar {
             
             NSLayoutConstraint.activate([
-                scoreLabel.leadingAnchor.constraint(equalTo: navigationBar.leadingAnchor, constant: 16),
-                scoreLabel.topAnchor.constraint(equalTo: navigationBar.safeAreaLayoutGuide.topAnchor)
+                scoreLabel.leadingAnchor.constraint(equalTo: navigationBar.leadingAnchor, constant: 18),
+                scoreLabel.centerYAnchor.constraint(equalTo: navigationBar.centerYAnchor)
             ])
         }
     }
     
-    private func presentWelcomeAlert() {
-        let welcomeAlert = UIAlertController(title: "Welcome", message: nil, preferredStyle: .alert)
+    private func presentStartButtonAlert() {
+
+        let startButtonAlert = ActionAlertViewController()
         
-        let startAction = UIAlertAction(title: "Start", style: .default) { _ in
+        startButtonAlert.addButton(title: "Start", color: .systemGreen) { _ in
+            
             self.startGameLoop()
+            self.dismiss(animated: true)
         }
-        welcomeAlert.addAction(startAction)
         
-        present(welcomeAlert, animated: true)
+        present(startButtonAlert, animated: true)
     }
     
     // MARK: Game Logic
     private func startGameLoop() {
+        
+        scoreLabel.isHidden = false
+        navigationItem.rightBarButtonItem?.isHidden = false
         
         displayLink = CADisplayLink(target: self, selector: #selector(gameLoop))
         displayLink?.add(to: .main, forMode: .default)
@@ -120,28 +132,68 @@ class GameViewController: UIViewController {
         let currentSpeed = speed
         speed = 0
         
-        let alert = UIAlertController(title: "Pause", message: nil, preferredStyle: .alert)
+        scoreLabel.isHidden = true
+        navigationItem.rightBarButtonItem?.isHidden = true
         
-        let resume = UIAlertAction(title: "Resume", style: .cancel) { _ in
+        let pauseAlert = ActionAlertViewController()
+        
+        pauseAlert.addTitle(title: nil, titleColor: nil, message: "Score: \(score)")
+        
+        pauseAlert.addButton(title: "Continue", color: .systemIndigo) { _ in
+            
+            self.scoreLabel.isHidden = false
+            self.navigationItem.rightBarButtonItem?.isHidden = false
+            
             self.speed = currentSpeed
+            self.dismiss(animated: true)
         }
-        alert.addAction(resume)
         
-        present(alert, animated: true)
+        pauseAlert.addButton(title: "Quit", color: .systemOrange) { _ in
+            
+            self.enemies.forEach {
+                $0.removeFromSuperview()
+            }
+            self.enemies.removeAll()
+            
+            self.gameStop()
+            self.dismiss(animated: true)
+            self.presentStartButtonAlert()
+        }
+        
+        present(pauseAlert, animated: true)
     }
     
     private func gameOver() {
-        displayLink?.invalidate()
-        displayLink = nil
         
+        scoreLabel.isHidden = true
+        navigationItem.rightBarButtonItem?.isHidden = true
+        
+        displayLink?.invalidate()
         enemySpawnTimer.invalidate()
         
-        let alert = UIAlertController(title: "Game Over", message: nil, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "Restart", style: .default) { _ in
-            self.gameRestart()
-        })
+        let restartAlert = ActionAlertViewController()
         
-        present(alert, animated: true)
+        restartAlert.addTitle(title: "Game Over", titleColor: .systemRed, message: "Score: \(score)")
+        
+        restartAlert.addButton(title: "Restart", color: .systemIndigo) { _ in
+            
+            self.gameRestart()
+            self.dismiss(animated: true)
+        }
+        
+        restartAlert.addButton(title: "Quit", color: .systemOrange) { _ in
+            
+            self.enemies.forEach {
+                $0.removeFromSuperview()
+            }
+            self.enemies.removeAll()
+            
+            self.gameStop()
+            self.dismiss(animated: true)
+            self.presentStartButtonAlert()
+        }
+        
+        present(restartAlert, animated: true)
     }
     
     private func gameRestart() {
@@ -157,6 +209,18 @@ class GameViewController: UIViewController {
         
         startGameLoop()
     }
+    
+    private func gameStop() {
+        
+        playerImageView.removeFromSuperview()
+        
+        enemies.forEach { $0.removeFromSuperview() }
+        enemies.removeAll()
+        
+        speed = 6
+        score = 0
+        scoreLabel.text = String(score)
+    }
 }
 
 extension GameViewController: EnemyCarViewDelegate {
@@ -171,3 +235,4 @@ extension GameViewController: EnemyCarViewDelegate {
         }
     }
 }
+
