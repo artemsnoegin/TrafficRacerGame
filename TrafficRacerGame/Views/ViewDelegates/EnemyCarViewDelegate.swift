@@ -7,5 +7,5 @@
 
 protocol EnemyCarViewDelegate: AnyObject {
     
-    func didNotCrash()
+    func didFinishMovingWithoutCrashing()
 }

@@ -29,7 +29,8 @@ class EnemyCarView: CarImageView, Movable {
         if frame.origin.y > superview.frame.height {
             removeFromSuperview()
             place(on: superview)
-            delegate?.didNotCrash()
+            
+            delegate?.didFinishMovingWithoutCrashing()
         }
     }
 }

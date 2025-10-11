@@ -7,48 +7,53 @@
 
 import UIKit
 
-class GameViewController: UIViewController {
- 
-    private var displayLink: CADisplayLink?
+class GameViewController: UIViewController, EnemyCarViewDelegate {
+    
+    private let gameLoop = GameLoop()
     
     private let backgroundView = BackgroundView()
     
     private let controlView = ControlView()
     
-    private let playerImageView = PlayerCarView()
-    private var enemies: [EnemyCarView] = []
+    private let playerCarView = PlayerCarView()
+    private var playerDidAppear = false
     
+    private var enemyCarViews = [EnemyCarView]()
     private var enemySpawnTimer = Timer()
-    
-    private var speed: CGFloat = 6
+    private var enemySpawnInterval: TimeInterval = 2
     
     private let scoreLabel = UILabel()
     private var score = 0
     
+    private var speed: CGFloat = 6
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        gameLoop.delegate = self
         
         view.addSubview(backgroundView)
         
         view.addSubview(controlView)
-        controlView.delegate = playerImageView
-
-        presentStartButtonAlert()
+        controlView.delegate = playerCarView
+        
         addScoreLabel()
         addPauseButton()
+
+        presentStartActionAlert()
     }
     
-    private func addPauseButton() {
+    func didFinishMovingWithoutCrashing() {
         
-        let pauseButton = UIBarButtonItem(title: "Pause", style: .plain, target: self, action: #selector(pause))
-        if let font = UIFont(name: "CyberpunkCraftpixPixel", size: UIFont.labelFontSize) {
-            pauseButton.setTitleTextAttributes([.font: font], for: .normal)
-            pauseButton.setTitleTextAttributes([.font: font], for: .highlighted)
+        guard playerDidAppear else { return }
+        
+        score += 1
+        scoreLabel.text = String(score)
+        
+        if score % 25 == 0 {
+            speed += 1
+            enemySpawnInterval += 0.5
         }
-        pauseButton.tintColor = .white
-        pauseButton.isHidden = true
-        
-        navigationItem.rightBarButtonItem = pauseButton
     }
     
     private func addScoreLabel() {
@@ -56,12 +61,11 @@ class GameViewController: UIViewController {
         scoreLabel.text = String(score)
         scoreLabel.font = .init(name: "CyberpunkCraftpixPixel", size: UIFont.labelFontSize * 2)
         scoreLabel.textColor = .white
-        scoreLabel.isHidden = true
-
-        navigationController?.navigationBar.addSubview(scoreLabel)
-        scoreLabel.translatesAutoresizingMaskIntoConstraints = false
 
         if let navigationBar = navigationController?.navigationBar {
+            
+            navigationBar.addSubview(scoreLabel)
+            scoreLabel.translatesAutoresizingMaskIntoConstraints = false
             
             NSLayoutConstraint.activate([
                 scoreLabel.leadingAnchor.constraint(equalTo: navigationBar.leadingAnchor, constant: 18),
@@ -70,70 +74,60 @@ class GameViewController: UIViewController {
         }
     }
     
-    private func presentStartButtonAlert() {
+    private func addPauseButton() {
+        
+        let pauseButton = UIBarButtonItem(title: "Pause", style: .plain, target: self, action: #selector(presentPauseActionAlert))
+        
+        if let font = UIFont(name: "CyberpunkCraftpixPixel", size: UIFont.labelFontSize) {
+            
+            pauseButton.setTitleTextAttributes([.font: font], for: .normal)
+            pauseButton.setTitleTextAttributes([.font: font], for: .highlighted)
+        }
+        pauseButton.tintColor = .white
+        
+        navigationItem.rightBarButtonItem = pauseButton
+    }
+    
+    private func reset() {
+        
+        speed = 6
+        score = 0
+        scoreLabel.text = String(self.score)
+        
+        enemySpawnInterval = 2
+        
+        playerCarView.place(on: self.view)
+        playerDidAppear.toggle()
+    }
+    
+    private func presentStartActionAlert() {
+        
+        navigationController?.navigationBar.isHidden = true
+        
+        gameLoop.start()
+        
+        enemySpawnTimer = Timer.scheduledTimer(timeInterval: enemySpawnInterval, target: self, selector: #selector(spawnEnemies), userInfo: nil, repeats: true)
+        enemySpawnTimer.fire()
 
         let startButtonAlert = ActionAlertViewController()
         
         startButtonAlert.addButton(title: "Start", color: .systemGreen) { _ in
             
-            self.startGameLoop()
+            self.reset()
+
             self.dismiss(animated: true)
+            
+            self.navigationController?.navigationBar.isHidden = false
         }
         
         present(startButtonAlert, animated: true)
     }
     
-    // MARK: Game Logic
-    private func startGameLoop() {
+    @objc private func presentPauseActionAlert() {
         
-        scoreLabel.isHidden = false
-        navigationItem.rightBarButtonItem?.isHidden = false
+        navigationController?.navigationBar.isHidden = true
         
-        displayLink = CADisplayLink(target: self, selector: #selector(gameLoop))
-        displayLink?.add(to: .main, forMode: .default)
-        
-        playerImageView.place(on: view)
-        
-        enemySpawnTimer = Timer.scheduledTimer(timeInterval: 2, target: self, selector: #selector(spawnEnemies), userInfo: nil, repeats: true)
-        enemySpawnTimer.fire()
-    }
-    
-    @objc private func spawnEnemies() {
-        
-        if enemies.count < 3 {
-            
-            let enemy = EnemyCarView()
-            enemy.place(on: view)
-            enemy.delegate = self
-            
-            enemies.append(enemy)
-        }
-    }
-    
-    @objc func gameLoop() {
-        
-        backgroundView.move(speed: speed)
-        
-        playerImageView.move(speed: speed)
-        
-        for enemy in enemies {
-            
-            enemy.move(speed: speed)
-            
-            if enemy.frame.insetBy(dx: 4, dy: 4).intersects(playerImageView.frame.insetBy(dx: 4, dy: 4)) {
-                gameOver()
-                break
-            }
-        }
-    }
-    
-    @objc private func pause() {
-        
-        let currentSpeed = speed
-        speed = 0
-        
-        scoreLabel.isHidden = true
-        navigationItem.rightBarButtonItem?.isHidden = true
+        gameLoop.pause()
         
         let pauseAlert = ActionAlertViewController()
         
@@ -141,98 +135,113 @@ class GameViewController: UIViewController {
         
         pauseAlert.addButton(title: "Continue", color: .systemIndigo) { _ in
             
-            self.scoreLabel.isHidden = false
-            self.navigationItem.rightBarButtonItem?.isHidden = false
-            
-            self.speed = currentSpeed
+            self.gameLoop.restart()
+
             self.dismiss(animated: true)
+            
+            self.navigationController?.navigationBar.isHidden = false
         }
         
         pauseAlert.addButton(title: "Quit", color: .systemOrange) { _ in
             
-            self.enemies.forEach {
-                $0.removeFromSuperview()
-            }
-            self.enemies.removeAll()
+            self.removeAllFromSuperview()
             
-            self.gameStop()
+            self.gameLoop.invalidate()
+            self.enemySpawnTimer.invalidate()
+            
             self.dismiss(animated: true)
-            self.presentStartButtonAlert()
+            
+            self.presentStartActionAlert()
         }
         
         present(pauseAlert, animated: true)
     }
     
-    private func gameOver() {
+    private func presentGameOverActionAlert() {
         
-        scoreLabel.isHidden = true
-        navigationItem.rightBarButtonItem?.isHidden = true
+        navigationController?.navigationBar.isHidden = true
         
-        displayLink?.invalidate()
+        gameLoop.invalidate()
         enemySpawnTimer.invalidate()
         
-        let restartAlert = ActionAlertViewController()
+        let gameOverActionAlert = ActionAlertViewController()
         
-        restartAlert.addTitle(title: "Game Over", titleColor: .systemRed, message: "Score: \(score)")
+        gameOverActionAlert.addTitle(title: "Game Over", titleColor: .systemRed, message: "Score: \(score)")
         
-        restartAlert.addButton(title: "Restart", color: .systemIndigo) { _ in
+        gameOverActionAlert.addButton(title: "Restart", color: .systemIndigo) { _ in
             
-            self.gameRestart()
+            self.removeAllFromSuperview()
+            
+            self.reset()
+            
+            self.gameLoop.start()
+            
+            self.enemySpawnTimer = Timer.scheduledTimer(timeInterval: self.enemySpawnInterval, target: self, selector: #selector(self.spawnEnemies), userInfo: nil, repeats: true)
+            self.enemySpawnTimer.fire()
+            
             self.dismiss(animated: true)
+            
+            self.navigationController?.navigationBar.isHidden = false
         }
         
-        restartAlert.addButton(title: "Quit", color: .systemOrange) { _ in
+        gameOverActionAlert.addButton(title: "Quit", color: .systemOrange) { _ in
             
-            self.enemies.forEach {
-                $0.removeFromSuperview()
+            self.removeAllFromSuperview()
+            
+            self.dismiss(animated: true)
+            
+            self.presentStartActionAlert()
+        }
+        
+        present(gameOverActionAlert, animated: true)
+    }
+    
+    @objc private func spawnEnemies() {
+        
+        if enemyCarViews.count < 3 {
+            
+            let enemy = EnemyCarView()
+            enemy.place(on: view)
+            enemy.delegate = self
+            
+            enemyCarViews.append(enemy)
+        }
+    }
+    
+    private func removeAllFromSuperview() {
+        
+        playerCarView.removeFromSuperview()
+        playerDidAppear.toggle()
+        
+        enemyCarViews.forEach { $0.removeFromSuperview() }
+        enemyCarViews.removeAll()
+    }
+    
+    deinit {
+        
+        gameLoop.invalidate()
+        enemySpawnTimer.invalidate()
+    }
+}
+
+extension GameViewController: GameLoopDelegate {
+    
+    func isRunning() {
+        
+        backgroundView.move(speed: speed)
+        
+        playerCarView.move(speed: speed)
+        
+        for enemy in enemyCarViews {
+            
+            enemy.move(speed: speed)
+            
+            guard playerDidAppear else { return }
+            
+            if enemy.frame.insetBy(dx: 4, dy: 4).intersects(playerCarView.frame.insetBy(dx: 4, dy: 4)) {
+                presentGameOverActionAlert()
+                break
             }
-            self.enemies.removeAll()
-            
-            self.gameStop()
-            self.dismiss(animated: true)
-            self.presentStartButtonAlert()
-        }
-        
-        present(restartAlert, animated: true)
-    }
-    
-    private func gameRestart() {
-        
-        playerImageView.removeFromSuperview()
-        
-        enemies.forEach { $0.removeFromSuperview() }
-        enemies.removeAll()
-        
-        speed = 6
-        score = 0
-        scoreLabel.text = String(score)
-        
-        startGameLoop()
-    }
-    
-    private func gameStop() {
-        
-        playerImageView.removeFromSuperview()
-        
-        enemies.forEach { $0.removeFromSuperview() }
-        enemies.removeAll()
-        
-        speed = 6
-        score = 0
-        scoreLabel.text = String(score)
-    }
-}
-
-extension GameViewController: EnemyCarViewDelegate {
-    
-    func didNotCrash() {
-        score += 1
-        scoreLabel.text = String(score)
-        
-        if score % 10 == 0 {
-            speed += 0.1
-            print(speed)
         }
     }
 }
-

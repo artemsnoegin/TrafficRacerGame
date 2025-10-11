@@ -23,11 +23,13 @@ class ActionAlertViewController: UIViewController {
     
     private func configure() {
         
+        view.backgroundColor = .black.withAlphaComponent(0.2)
+        
         modalPresentationStyle = .overFullScreen
         modalTransitionStyle = .crossDissolve
         
         contentStack.axis = .vertical
-        contentStack.spacing = 16
+        contentStack.spacing = 5
         
         view.addSubview(contentStack)
         contentStack.translatesAutoresizingMaskIntoConstraints = false
@@ -74,6 +76,11 @@ class ActionAlertViewController: UIViewController {
         messageLabel.textAlignment = .center
         
         contentStack.addArrangedSubview(messageLabel)
+        
+        let spacing = UIView()
+        spacing.heightAnchor.constraint(equalToConstant: 5).isActive = true
+        
+        contentStack.addArrangedSubview(spacing)
     }
 }
 
