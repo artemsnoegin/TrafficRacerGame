@@ -111,13 +111,13 @@ class GameViewController: UIViewController, EnemyCarViewDelegate {
 
         let startButtonAlert = ActionAlertViewController()
         
-        startButtonAlert.addButton(title: "Start", color: .systemGreen) { _ in
+        startButtonAlert.addButton(title: "Start", color: .systemGreen) { [weak self] _ in
             
-            self.reset()
+            self?.reset()
 
-            self.dismiss(animated: true)
+            self?.dismiss(animated: true)
             
-            self.navigationController?.navigationBar.isHidden = false
+            self?.navigationController?.navigationBar.isHidden = false
         }
         
         present(startButtonAlert, animated: true)
@@ -133,25 +133,25 @@ class GameViewController: UIViewController, EnemyCarViewDelegate {
         
         pauseAlert.addTitle(title: nil, titleColor: nil, message: "Score: \(score)")
         
-        pauseAlert.addButton(title: "Continue", color: .systemIndigo) { _ in
+        pauseAlert.addButton(title: "Continue", color: .systemIndigo) { [weak self] _ in
             
-            self.gameLoop.restart()
+            self?.gameLoop.restart()
 
-            self.dismiss(animated: true)
+            self?.dismiss(animated: true)
             
-            self.navigationController?.navigationBar.isHidden = false
+            self?.navigationController?.navigationBar.isHidden = false
         }
         
-        pauseAlert.addButton(title: "Quit", color: .systemOrange) { _ in
+        pauseAlert.addButton(title: "Quit", color: .systemOrange) { [weak self] _ in
             
-            self.removeAllFromSuperview()
+            self?.removeAllFromSuperview()
             
-            self.gameLoop.invalidate()
-            self.enemySpawnTimer.invalidate()
+            self?.gameLoop.invalidate()
+            self?.enemySpawnTimer.invalidate()
             
-            self.dismiss(animated: true)
+            self?.dismiss(animated: true)
             
-            self.presentStartActionAlert()
+            self?.presentStartActionAlert()
         }
         
         present(pauseAlert, animated: true)
@@ -168,32 +168,37 @@ class GameViewController: UIViewController, EnemyCarViewDelegate {
         
         gameOverActionAlert.addTitle(title: "Game Over", titleColor: .systemRed, message: "Score: \(score)")
         
-        gameOverActionAlert.addButton(title: "Restart", color: .systemIndigo) { _ in
+        gameOverActionAlert.addButton(title: "Restart", color: .systemIndigo) { [weak self] _ in
             
-            self.removeAllFromSuperview()
+            self?.restartFromGameOver()
             
-            self.reset()
+            self?.dismiss(animated: true)
             
-            self.gameLoop.start()
-            
-            self.enemySpawnTimer = Timer.scheduledTimer(timeInterval: self.enemySpawnInterval, target: self, selector: #selector(self.spawnEnemies), userInfo: nil, repeats: true)
-            self.enemySpawnTimer.fire()
-            
-            self.dismiss(animated: true)
-            
-            self.navigationController?.navigationBar.isHidden = false
+            self?.navigationController?.navigationBar.isHidden = false
         }
         
-        gameOverActionAlert.addButton(title: "Quit", color: .systemOrange) { _ in
+        gameOverActionAlert.addButton(title: "Quit", color: .systemOrange) { [weak self] _ in
             
-            self.removeAllFromSuperview()
+            self?.removeAllFromSuperview()
             
-            self.dismiss(animated: true)
+            self?.dismiss(animated: true)
             
-            self.presentStartActionAlert()
+            self?.presentStartActionAlert()
         }
         
         present(gameOverActionAlert, animated: true)
+    }
+    
+    private func restartFromGameOver() {
+        
+        removeAllFromSuperview()
+        
+        reset()
+        
+        gameLoop.start()
+        
+        enemySpawnTimer = Timer.scheduledTimer(timeInterval: enemySpawnInterval, target: self, selector: #selector(spawnEnemies), userInfo: nil, repeats: true)
+        enemySpawnTimer.fire()
     }
     
     @objc private func spawnEnemies() {
